@@ -94,26 +94,35 @@ def mask_image():
 mask_image()
 
 def mask_detection():
-    local_css("css/styles.css")
-    st.markdown('<h1 align="center">😷 Face Mask Detection</h1>', unsafe_allow_html=True)
-    activities = ["Image", "Webcam"]
-    st.set_option('deprecation.showfileUploaderEncoding', False)
-    st.sidebar.markdown("# Mask Detection on?")
-    choice = st.sidebar.selectbox("Choose among the given options:", activities)
+    try:
+        local_css("css/styles.css")
+        st.markdown('<h1 align="center">😷 Face Mask Detection</h1>', unsafe_allow_html=True)
+        activities = ["Image", "Webcam"]
+        st.set_option('deprecation.showfileUploaderEncoding', False)
+        st.sidebar.markdown("# Mask Detection on?")
+        choice = st.sidebar.selectbox("Choose among the given options:", activities)
 
-    if choice == 'Image':
-        st.markdown('<h2 align="center">Detection on Image</h2>', unsafe_allow_html=True)
-        st.markdown("### Upload your image here ⬇")
-        image_file = st.file_uploader("", type=['jpg'])  # upload image
-        if image_file is not None:
-            our_image = Image.open(image_file)  # making compatible to PIL
-            im = our_image.save('./images/out.jpg')
-            saved_image = st.image(image_file, caption='', use_column_width=True)
-            st.markdown('<h3 align="center">Image uploaded successfully!</h3>', unsafe_allow_html=True)
-            if st.button('Process'):
-                st.image(RGB_img, use_column_width=True)
+        if choice == 'Image':
+            st.markdown('<h2 align="center">Detection on Image</h2>', unsafe_allow_html=True)
+            st.markdown("### Upload your image here ⬇")
+            image_file = st.file_uploader("", type=['jpg'])  # upload image
+            if image_file is not None:
+                try:
+                    our_image = Image.open(image_file)  # making compatible to PIL
+                    im = our_image.save('./images/out.jpg')
+                    saved_image = st.image(image_file, caption='', use_column_width=True)
+                    st.markdown('<h3 align="center">Image uploaded successfully!</h3>', unsafe_allow_html=True)
+                    if st.button('Process'):
+                        st.image(RGB_img, use_column_width=True)
+                except Exception as e:
+                    st.error(f"Error processing image: {e}")
+        
 
-    if choice == 'Webcam':
-        st.markdown('<h2 align="center">Detection on Webcam</h2>', unsafe_allow_html=True)
-        st.markdown('<h3 align="center">This feature will be available soon!</h3>', unsafe_allow_html=True)
+        if choice == 'Webcam':
+            st.markdown('<h2 align="center">Detection on Webcam</h2>', unsafe_allow_html=True)
+            st.markdown('<h3 align="center">This feature will be available soon!</h3>', unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"An error occurred: {e}")     
+
+
 mask_detection()

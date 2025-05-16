@@ -55,3 +55,34 @@ This repo uses the Python 3.9.21
    ```powershell
    pip3 install -r requirements.txt
    ```
+
+## EMail Account Notes
+
+You are getting this error because **Google no longer allows normal passwords for SMTP** if you have 2-Step Verification enabled on your Gmail account.  
+You must use an **App Password** instead of your regular Gmail password.
+
+---
+
+### How to fix
+
+1. **Enable 2-Step Verification** on your Google account if you haven't already:  
+   https://myaccount.google.com/security
+
+2. **Generate an App Password**:  
+   - Go to: https://myaccount.google.com/apppasswords  
+   - Select "Mail" as the app and "Other" (or your device) as the device.
+   - Google will generate a 16-character password.  
+   - Use this password in your config.ini as `sender_password`.
+
+3. **Update your config.ini** with the new app password.
+
+---
+
+**References:**  
+- [Google: Sign in using App Passwords](https://support.google.com/mail/?p=InvalidSecondFactor)
+
+---
+
+**Summary:**  
+Replace your Gmail password with an App Password in your configuration.  
+This is required for all programmatic access to Gmail SMTP.

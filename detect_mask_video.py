@@ -13,6 +13,9 @@ import time
 import cv2
 import os
 
+import time
+from config_loader import ConfigLoader
+from email_sender import EmailSender
 def detect_and_predict_mask(frame, faceNet, maskNet):
 	# grab the dimensions of the frame and then construct a blob
 	# from it
@@ -103,6 +106,22 @@ print("[INFO] starting video stream...")
 vs = VideoStream(src=0).start()
 time.sleep(2.0)
 
+# ...existing code...
+config = ConfigLoader("config.ini")
+email_conf = config.get_email_config()
+interval_minutes = config.get_snapshot_interval()
+# When loading from config:
+receiver_emails = email_conf['receiver_email']
+email_sender = EmailSender(
+    smtp_server=email_conf['smtp_server'],
+    smtp_port=int(email_conf['smtp_port']),
+    sender_email=email_conf['sender_email'],
+    sender_password=email_conf['sender_password'],
+    receiver_emails=receiver_emails
+)
+last_sent_time = 0
+# ...existing code...
+
 # loop over the frames from the video stream
 while True:
 	# grab the frame from the threaded video stream and resize it
@@ -134,6 +153,29 @@ while True:
 		cv2.putText(frame, label, (startX, startY - 10),
 			cv2.FONT_HERSHEY_SIMPLEX, 0.45, color, 2)
 		cv2.rectangle(frame, (startX, startY), (endX, endY), color, 2)
+
+		# Take a snapshot and send email periodically for any detection
+		current_time = time.time()
+		if current_time - last_sent_time > interval_minutes * 60:
+			flag_mask_detected = False
+			# Make sure to check if the label contains "No Mask" before sending
+			if "No Mask" in label:
+				flag_mask_detected = False
+			else:
+				flag_mask_detected = True
+
+			if flag_mask_detected:
+				snapshot_dir = config.config['snapshot'].get('snapshot_dir', '.')
+				os.makedirs(snapshot_dir, exist_ok=True)
+				timestamp = time.strftime("%Y%m%d-%H%M%S")
+				snapshot_path = os.path.join(snapshot_dir, f"snapshot_{timestamp}.jpg")
+				cv2.imwrite(snapshot_path, frame)
+				email_sender.send_email_with_attachment(
+					subject=f"Face Mask Detection Snapshot - {label}",
+					body=f"A person was detected with label '{label}' at {timestamp}.",
+					attachment_path=snapshot_path
+				)
+				last_sent_time = current_time
 
 	# show the output frame
 	cv2.imshow("Frame", frame)
